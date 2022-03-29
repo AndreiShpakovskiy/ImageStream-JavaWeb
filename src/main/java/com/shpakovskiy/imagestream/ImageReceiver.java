@@ -13,26 +13,31 @@ import java.io.InputStream;
 @RestController
 public class ImageReceiver {
 
+    boolean save = true;
+
     @RequestMapping(value = "/photo", method = RequestMethod.POST)
     private void acceptImage(InputStream imageStream) {
 
+        if (save) {
+            try {
+                File newFile = new File("" + System.currentTimeMillis() + ".bmp");
+                newFile.createNewFile();
+                FileOutputStream fileOutputStream = new FileOutputStream(newFile);
+                fileOutputStream.write(IOUtils.toByteArray(imageStream));
+                fileOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            save = false;
+        }
+
         try {
-            File newFile = new File("" + System.currentTimeMillis() + ".bmp");
-            newFile.createNewFile();
-            FileOutputStream fileOutputStream = new FileOutputStream(newFile);
-            fileOutputStream.write(IOUtils.toByteArray(imageStream));
-            fileOutputStream.close();
+            FrameStore.getInstance().updateCurrentFrame(IOUtils.toByteArray(imageStream));
+            System.out.println("Smth: " + imageStream.available());
+            //System.out.println("Lenght: " + .length);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        //try {
-            //FrameStore.getInstance().updateCurrentFrame();
-            //System.out.println("Smth: " + imageStream.available());
-            //System.out.println("Lenght: " + .length);
-        //} catch (IOException e) {
-            //e.printStackTrace();
-        //}
 
         System.out.println("Receiving new something");
     }

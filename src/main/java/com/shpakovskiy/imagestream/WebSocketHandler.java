@@ -18,16 +18,24 @@ public class WebSocketHandler extends AbstractWebSocketHandler {
         System.out.println("New websocket connection");
 
         new Thread(() -> {
-            try {
-                //session.sendMessage(new BinaryMessage());
-                session.sendMessage(
-                        new BinaryMessage(
-                                FrameStore.getInstance().getCurrentFrame()
-                                //Files.readAllBytes(Paths.get("TestFrames" + File.separator + "1.jpg"))
-                        )
-                );
-            } catch (IOException e) {
-                e.printStackTrace();
+            while (true) {
+                try {
+                    //session.sendMessage(new BinaryMessage());
+                    session.sendMessage(
+                            new BinaryMessage(
+                                    FrameStore.getInstance().getCurrentFrame()
+                                    //Files.readAllBytes(Paths.get("TestFrames" + File.separator + "1.jpg"))
+                            )
+                    );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }).start();
     }

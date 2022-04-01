@@ -1,0 +1,19 @@
+<html lang="en">
+<body>
+<img id="image-frame" alt="Image frames" src="default-image.png">
+</body>
+<script>
+    const imageFrame = document.getElementById("image-frame");
+
+    const socket = new WebSocket("ws://localhost:9999/image-stream");
+    socket.binaryType = "arraybuffer";
+
+    socket.onmessage = function (event) {
+        if (event.data instanceof ArrayBuffer) {
+            imageFrame.src = URL.createObjectURL(new Blob([event.data]));
+        } else {
+            imageFrame.src = "default-image.png";
+        }
+    };
+</script>
+</html>

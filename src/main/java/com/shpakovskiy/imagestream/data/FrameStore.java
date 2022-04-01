@@ -1,4 +1,4 @@
-package com.shpakovskiy.imagestream;
+package com.shpakovskiy.imagestream.data;
 
 public class FrameStore {
     private static final FrameStore instance = new FrameStore();

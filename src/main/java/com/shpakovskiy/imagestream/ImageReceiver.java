@@ -1,44 +1,45 @@
 package com.shpakovskiy.imagestream;
 
-import org.apache.commons.io.IOUtils;
+import com.shpakovskiy.imagestream.data.FrameStore;
+import com.shpakovskiy.imagestream.data.WeirdLogger;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 public class ImageReceiver {
 
-    boolean save = true;
+    private long lastPhotoReceivingTime = 0;
+    private long fps = 0;
 
     @RequestMapping(value = "/photo", method = RequestMethod.POST)
-    private void acceptImage(InputStream imageStream) {
+    public ResponseEntity<String> acceptImage(@RequestBody byte[] imageBytes, HttpServletRequest request) {
+        FrameStore.getInstance().updateCurrentFrame(imageBytes);
 
-        if (save) {
-            try {
-                File newFile = new File("" + System.currentTimeMillis() + ".bmp");
-                newFile.createNewFile();
-                FileOutputStream fileOutputStream = new FileOutputStream(newFile);
-                fileOutputStream.write(IOUtils.toByteArray(imageStream));
-                fileOutputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            save = false;
+        WeirdLogger.info("New image ["
+                + imageBytes.length + " bytes, "
+                + imageBytes.length / 1024 + " kilobytes]" +
+                " from " + request.getRemoteHost());
+
+        long currentTime = System.currentTimeMillis();
+
+        fps++;
+        if (currentTime - lastPhotoReceivingTime > 1000) {
+            lastPhotoReceivingTime = currentTime;
+            WeirdLogger.info("FPS = " + fps);
+            fps = 0;
         }
 
-        try {
-            FrameStore.getInstance().updateCurrentFrame(IOUtils.toByteArray(imageStream));
-            System.out.println("Smth: " + imageStream.available());
-            //System.out.println("Lenght: " + .length);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
 
-        System.out.println("Receiving new something");
+    @RequestMapping(value = "/log", method = RequestMethod.POST)
+    private void acceptLog(@RequestBody String logMessage) {
+        WeirdLogger.info(logMessage);
     }
 }
